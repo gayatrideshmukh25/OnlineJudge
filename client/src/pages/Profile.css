@@ -1,0 +1,31 @@
+.profile-content {
+  flex: 1;
+  min-width: 0;
+  max-width: 560px;
+}
+
+.profile-content h1 {
+  font-size: 24px;
+}
+
+.profile-card {
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.profile-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  margin-bottom: 18px;
+}
+
+.danger-zone {
+  border-color: rgba(255, 84, 112, 0.25);
+}
+
+.danger-zone p {
+  margin-bottom: 16px;
+  font-size: 14px;
+}

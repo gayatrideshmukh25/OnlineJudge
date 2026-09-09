@@ -1,0 +1,121 @@
+.problem-details {
+  padding: 32px 24px 80px;
+}
+
+.pd-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.pd-statement {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  max-height: calc(100vh - var(--nav-height) - 60px);
+  overflow-y: auto;
+  position: sticky;
+  top: calc(var(--nav-height) + 20px);
+}
+
+.pd-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.pd-title-row h1 {
+  font-size: 24px;
+}
+
+.pd-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.pd-section {
+  margin-bottom: 24px;
+}
+
+.pd-section h3 {
+  font-size: 15px;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.pd-section p {
+  color: var(--text-dim);
+  line-height: 1.7;
+  font-size: 14.5px;
+}
+
+.pd-example {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 13.5px;
+  white-space: pre-wrap;
+  color: var(--text-dim);
+}
+
+.pd-constraints {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pd-constraints li {
+  font-size: 13px;
+  color: var(--text-dim);
+  padding-left: 14px;
+  position: relative;
+}
+.pd-constraints li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--primary);
+}
+
+.pd-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pd-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.pd-console-body {
+  padding: 16px;
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: pre-wrap;
+  min-height: 80px;
+}
+
+.pd-result {
+  padding: 16px 20px;
+}
+
+.pd-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 1050px) {
+  .pd-layout { grid-template-columns: 1fr; }
+  .pd-statement { position: static; max-height: none; }
+}

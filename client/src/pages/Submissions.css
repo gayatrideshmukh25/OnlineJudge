@@ -1,0 +1,12 @@
+.submissions-page {
+  padding: 36px 24px 80px;
+}
+
+.submissions-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.submissions-content h1 {
+  font-size: 24px;
+}
