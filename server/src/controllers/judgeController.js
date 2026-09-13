@@ -48,6 +48,7 @@ const judgeSubmission = async (req, resp) => {
       submission.code,
       hiddenTestCases,
     );
+    console.log("Memory:", result.memory);
     console.log("result done executing", result);
     await prisma.submission.update({
       where: {
@@ -57,6 +58,8 @@ const judgeSubmission = async (req, resp) => {
         status: result.status,
         runtime: result.runtime,
         memory: result.memory,
+        passed: result.passed,
+        total: result.total,
       },
     });
     console.log("judged");

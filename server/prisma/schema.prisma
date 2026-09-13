@@ -87,6 +87,8 @@ model Submission {
   status      String
   runtime     Int?
   memory      Int?
+  passed      Int?
+  total       Int?
 
   userId       Int
   user         User        @relation(fields: [userId], references: [id])

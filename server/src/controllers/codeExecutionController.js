@@ -15,6 +15,8 @@ const runCode = async (req, resp) => {
     });
 
     const result = await executeCode(language, code, sampleTestCases);
+    console.log("Memory:", result.memory);
+    console.log("result done executing", result);
     resp.status(200).json({
       success: true,
       result,

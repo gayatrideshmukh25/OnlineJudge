@@ -81,6 +81,9 @@ const javaExecutor = async (code, testCases) => {
 
     const results = [];
 
+    let maxRuntime = 0;
+    let maxMemory = 0;
+
     for (let i = 0; i < testCases.length; i++) {
       const testCase = testCases[i];
 
@@ -97,6 +100,8 @@ const javaExecutor = async (code, testCases) => {
         MEMORY_LIMIT,
         CPU_LIMIT,
       );
+      maxRuntime = Math.max(maxRuntime, runResult.runtime);
+      maxMemory = Math.max(maxMemory, runResult.memory);
 
       // ---------------------------------------------------
       // TIME LIMIT
@@ -110,7 +115,7 @@ const javaExecutor = async (code, testCases) => {
           status: "Time Limit Exceeded",
           error: `Execution time exceeded ${RUN_TIMEOUT} ms`,
           runtime: runResult.runtime,
-          memory: 0,
+          memory: runResult.memory,
           passed: 0,
           total: testCases.length,
           testResults: [],
@@ -129,7 +134,7 @@ const javaExecutor = async (code, testCases) => {
           status: "Memory Limit Exceeded",
           error: `Memory limit of ${MEMORY_LIMIT} exceeded`,
           runtime: runResult.runtime,
-          memory: 128,
+          memory: runResult.memory,
           passed: 0,
           total: testCases.length,
           testResults: [],
@@ -151,7 +156,7 @@ const javaExecutor = async (code, testCases) => {
             runResult.stderr ||
             `Program exited with code ${runResult.exitCode}`,
           runtime: runResult.runtime,
-          memory: 0,
+          memory: runResult.memory,
           passed: 0,
           total: testCases.length,
           testResults: [],
@@ -166,7 +171,7 @@ const javaExecutor = async (code, testCases) => {
         testCase,
         output: runResult.stdout,
         runtime: runResult.runtime,
-        memory: 0,
+        memory: runResult.memory,
       });
     }
 
@@ -174,6 +179,10 @@ const javaExecutor = async (code, testCases) => {
 
     return {
       success: true,
+      runtime: maxRuntime,
+      memory: maxMemory,
+      passed: results.length,
+      total: testCases.length,
       results,
     };
   } catch (error) {
@@ -195,7 +204,6 @@ const javaExecutor = async (code, testCases) => {
 // =========================================================
 // DOCKER RUNNER
 // =========================================================
-
 function runDocker(
   containerName,
   dockerDir,
@@ -211,27 +219,20 @@ function runDocker(
     const args = [
       "run",
       "--rm",
-
       "--name",
       containerName,
-
       "--network",
       "none",
-
       "--memory",
       memory,
-
       "--cpus",
       cpus,
-
       "-v",
       `${dockerDir}:/app`,
-
       "-w",
       "/app",
     ];
 
-    // Only execution needs stdin
     if (input !== null) {
       args.push("-i");
     }
@@ -245,71 +246,133 @@ function runDocker(
     let stdout = "";
     let stderr = "";
     let timedOut = false;
+    let peakMemory = 0;
+
+    // ---------------------------------------------------
+    // GET DOCKER MEMORY USAGE
+    // ---------------------------------------------------
+
+    const statsTimer = setInterval(() => {
+      const stats = spawn("docker", [
+        "stats",
+        "--no-stream",
+        "--format",
+        "{{.MemUsage}}",
+        containerName,
+      ]);
+
+      let statsOutput = "";
+
+      stats.stdout.on("data", (data) => {
+        statsOutput += data.toString();
+      });
+
+      stats.on("close", () => {
+        /*
+          Example Docker output:
+
+          25.4MiB / 128MiB
+
+          We only need the first value.
+        */
+
+        const match = statsOutput.match(/([\d.]+)\s*(B|KiB|MiB|GiB)/);
+
+        if (!match) return;
+
+        const value = parseFloat(match[1]);
+        const unit = match[2];
+
+        let memoryMB = value;
+
+        if (unit === "B") {
+          memoryMB = value / (1024 * 1024);
+        } else if (unit === "KiB") {
+          memoryMB = value / 1024;
+        } else if (unit === "MiB") {
+          memoryMB = value;
+        } else if (unit === "GiB") {
+          memoryMB = value * 1024;
+        }
+
+        // Keep maximum memory used
+        peakMemory = Math.max(peakMemory, memoryMB);
+      });
+    }, 50);
+
+    // ---------------------------------------------------
+    // STDOUT
+    // ---------------------------------------------------
 
     docker.stdout.on("data", (data) => {
       stdout += data.toString();
     });
 
+    // ---------------------------------------------------
+    // STDERR
+    // ---------------------------------------------------
+
     docker.stderr.on("data", (data) => {
       stderr += data.toString();
     });
+
+    // ---------------------------------------------------
+    // TIMEOUT
+    // ---------------------------------------------------
 
     const timer = setTimeout(() => {
       timedOut = true;
 
       console.log(`Killing container: ${containerName}`);
 
-      // Kill the actual Docker container
       spawn("docker", ["kill", containerName]);
     }, timeout);
 
+    // ---------------------------------------------------
+    // DOCKER ERROR
+    // ---------------------------------------------------
+
     docker.on("error", (error) => {
       clearTimeout(timer);
+      clearInterval(statsTimer);
 
       resolve({
         exitCode: -1,
         stdout,
         stderr: error.message,
         runtime: Date.now() - start,
+        memory: peakMemory,
         timedOut: false,
       });
     });
 
+    // ---------------------------------------------------
+    // DOCKER FINISHED
+    // ---------------------------------------------------
+
     docker.on("close", (exitCode) => {
       clearTimeout(timer);
+      clearInterval(statsTimer);
 
       resolve({
         exitCode,
         stdout,
         stderr,
         runtime: Date.now() - start,
+        memory: peakMemory,
         timedOut,
       });
     });
 
-    // Send input only for execution
+    // ---------------------------------------------------
+    // SEND INPUT
+    // ---------------------------------------------------
+
     if (input !== null) {
       docker.stdin.write(input);
       docker.stdin.end();
     }
   });
-}
-
-// =========================================================
-// CLEANUP
-// =========================================================
-
-function cleanup(tempDir) {
-  try {
-    fs.rmSync(tempDir, {
-      recursive: true,
-      force: true,
-    });
-
-    console.log("Temporary directory cleaned");
-  } catch (error) {
-    console.log("Cleanup error:", error.message);
-  }
 }
 
 module.exports = javaExecutor;
