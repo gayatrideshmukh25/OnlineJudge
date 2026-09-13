@@ -13,21 +13,6 @@ export default function Footer() {
           <p className="text-dim">Practice. Submit. Compile your best self.</p>
         </div>
 
-        <div className="footer-links">
-          <div>
-            <h4>Product</h4>
-            <Link to="/problems">Problems</Link>
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/submissions">Submissions</Link>
-          </div>
-          <div>
-            <h4>Account</h4>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Sign Up</Link>
-            <Link to="/profile">Profile</Link>
-          </div>
-        </div>
-
         <div className="footer-social">
           <a href="#" aria-label="GitHub">
             <FiGithub />

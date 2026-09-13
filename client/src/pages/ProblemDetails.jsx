@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import toast from "react-hot-toast";
@@ -26,6 +26,29 @@ export default function ProblemDetails() {
 
   const [language, setLanguage] = useState("java");
   const [code, setCode] = useState(DEFAULT_TEMPLATES[language]);
+  const codeRef = useRef(code);
+
+  useEffect(() => {
+    codeRef.current = code;
+  }, [code]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        await userCodeService.saveUserCode({
+          problemId: id,
+          language,
+          code,
+        });
+      } catch (error) {
+        console.error("Failed to save code:", error);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [code, id, language, isAuthenticated]);
   useEffect(() => {
     const loadUserCode = async () => {
       if (authLoading) return;
@@ -40,7 +63,6 @@ export default function ProblemDetails() {
           problemId: id,
           language,
         });
-        console.log(result.userCode.code);
         if (result?.userCode?.code) {
           setCode(result.userCode.code);
         } else {
@@ -54,11 +76,6 @@ export default function ProblemDetails() {
 
     loadUserCode();
   }, [authLoading, id, isAuthenticated, language]);
-  // const [code, setCode] = useState(() => {
-  //   const savedCode = userCodeService.getUserCode({ problemId: id, language });
-  //   // const savedCode = localStorage.getItem(`code-${userId}-${id}-${language}`);
-  //   return savedCode?.code || DEFAULT_TEMPLATES[language];
-  // });
 
   const handleLanguageChange = (lang) => {
     if (isAuthenticated) {
@@ -119,8 +136,6 @@ export default function ProblemDetails() {
         code,
         language,
       });
-      console.log("RUN RESULT:", judgeResult);
-      console.log("RUN TEST RESULTS:", judgeResult.result.testResults);
 
       setTestResults(judgeResult.result.testResults ?? []);
 
@@ -149,7 +164,6 @@ export default function ProblemDetails() {
         code,
         language,
       });
-      console.log("Submission created:", submission);
 
       const submissionId =
         submission.id ??
@@ -157,18 +171,10 @@ export default function ProblemDetails() {
         submission.submission?.id ??
         submission.submission?._id;
 
-      console.log("Submission ID:", submissionId);
       // STEP 2: Judge official submission
       const judgeResult = await submissionService.judgeSubmission(submissionId);
-      console.log("Judge result:", judgeResult);
-      console.log(
-        "Judge test results:",
-        judgeResult?.result?.testResults,
-        judgeResult,
-        judgeResult?.result?.status,
-      );
       // STEP 3: Display result
-      setResult(judgeResult);
+      setResult(judgeResult.result ?? judgeResult);
 
       setTestResults(judgeResult.testResults ?? []);
 
@@ -186,31 +192,6 @@ export default function ProblemDetails() {
       setSubmitting(false);
     }
   };
-  // const handleSubmit = async () => {
-  //   setSubmitting(true);
-  //   setResult(null);
-  //   try {
-  //     const submission = await submissionService.createSubmission({
-  //       problemId: id,
-  //       code,
-  //       language,
-  //       mode: "submit",
-  //     });
-  //     const judgeResult = await submissionService.judgeSubmission(
-  //       submission.id ?? submission._id,
-  //     );
-  //     setResult(judgeResult);
-  //     if (judgeResult.status === "Accepted") {
-  //       toast.success("Accepted! 🎉");
-  //     } else {
-  //       toast.error(judgeResult.status || "Submission failed");
-  //     }
-  //   } catch (err) {
-  //     // handled globally
-  //   } finally {
-  //     setSubmitting(false);
-  //   }
-  // };
 
   if (loading) return <Loading fullscreen label="Loading problem…" />;
 
@@ -319,6 +300,7 @@ export default function ProblemDetails() {
                 <span className={statusBadgeClass(result.status)}>
                   {result.status}
                 </span>
+
                 <span className="text-dim mono">
                   {" "}
                   error: {result.error || "—"}

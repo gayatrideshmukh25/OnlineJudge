@@ -12,7 +12,6 @@ export function AuthProvider({ children }) {
   // cookie so the browser sends it automatically — we never touch it.
   useEffect(() => {
     let mounted = true;
-
     authService
       .getCurrentUser()
       .then((data) => {

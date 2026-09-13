@@ -69,6 +69,8 @@ export default function SubmissionTable({ submissions = [] }) {
             );
 
             const latestSubmission = problemSubmissions[0];
+            const latestSubmissionId =
+              latestSubmission?.id ?? latestSubmission?._id;
 
             const isExpanded = expandedProblems[problemId];
 
@@ -87,7 +89,10 @@ export default function SubmissionTable({ submissions = [] }) {
                   </td>
 
                   <td>
-                    <Link to={`/problems/${problemId}`} className="table-link">
+                    <Link
+                      to={`/submissions/${latestSubmissionId}`}
+                      className="table-link"
+                    >
                       {problem?.title || "Unknown Problem"}
                     </Link>
                   </td>
@@ -118,7 +123,12 @@ export default function SubmissionTable({ submissions = [] }) {
                       <td></td>
 
                       <td className="mono text-faint">
-                        #{String(s.id || s._id).slice(-6)}
+                        <Link
+                          to={`/submissions/${s.id || s._id}`}
+                          className="table-link"
+                        >
+                          #{String(s.id || s._id).slice(-6)}
+                        </Link>
                       </td>
 
                       <td>
