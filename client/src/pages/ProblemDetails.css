@@ -119,3 +119,20 @@
   .pd-layout { grid-template-columns: 1fr; }
   .pd-statement { position: static; max-height: none; }
 }
+.ai-review-content {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ai-review-content h1 {
+  font-size: 18px;
+}
+
+.ai-review-content h2 {
+  font-size: 15px;
+}
+
+.ai-review-content p,
+.ai-review-content li {
+  font-size: 13px;
+}

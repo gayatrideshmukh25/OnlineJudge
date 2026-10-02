@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+
+import ReactMarkdown from "react-markdown";
 import useAuth from "../hooks/useAuth";
 import toast from "react-hot-toast";
 import { FiPlay, FiSend } from "react-icons/fi";
@@ -12,9 +14,11 @@ import Loading from "../components/Loading.jsx";
 import { DEFAULT_TEMPLATES } from "../utils/constants";
 import { difficultyBadgeClass, statusBadgeClass } from "../utils/helpers";
 import "./ProblemDetails.css";
+import aiService from "../services/aiService";
 
 export default function ProblemDetails() {
   const { id } = useParams();
+  const [submissionId, setSubmissionId] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -27,6 +31,7 @@ export default function ProblemDetails() {
   const [language, setLanguage] = useState("java");
   const [code, setCode] = useState(DEFAULT_TEMPLATES[language]);
   const codeRef = useRef(code);
+  const [review, setReview] = useState(false);
 
   useEffect(() => {
     codeRef.current = code;
@@ -90,6 +95,7 @@ export default function ProblemDetails() {
   const [submitting, setSubmitting] = useState(false);
   const [consoleOutput, setConsoleOutput] = useState("");
   const [result, setResult] = useState(null);
+  const [reviewResult, setReviewResult] = useState(null);
   const [testResults, setTestResults] = useState([]);
 
   const requireLogin = () => {
@@ -147,7 +153,24 @@ export default function ProblemDetails() {
       setRunning(false);
     }
   };
-
+  const handleReview = async () => {
+    if (!requireLogin()) return;
+    setConsoleOutput("Reviewing Your Code..");
+    try {
+      console.log("getting review for submissionId:", submissionId);
+      if (!submissionId) {
+        setConsoleOutput("Submit your solution before requesting a review.");
+        return;
+      }
+      const review = await aiService.getReview({
+        submissionId,
+      });
+      console.log("Review result:", review);
+      setReviewResult(review?.result);
+    } catch (err) {
+      setConsoleOutput(err.message || "Failed to get code review.");
+    }
+  };
   const handleSubmit = async () => {
     if (!requireLogin()) return;
 
@@ -170,7 +193,7 @@ export default function ProblemDetails() {
         submission._id ??
         submission.submission?.id ??
         submission.submission?._id;
-
+      setSubmissionId(submissionId);
       // STEP 2: Judge official submission
       const judgeResult = await submissionService.judgeSubmission(submissionId);
       // STEP 3: Display result
@@ -186,6 +209,7 @@ export default function ProblemDetails() {
       } else {
         toast.error(judgeResult.status || "Submission failed");
       }
+      setReview(true);
     } catch (err) {
       setConsoleOutput("Failed to submit your code.");
     } finally {
@@ -293,6 +317,22 @@ export default function ProblemDetails() {
               {consoleOutput || "Run your code to see output here."}
             </pre>
           </div>
+          {review && (
+            <button className="btn btn-primary" onClick={handleReview}>
+              AI Code Review
+            </button>
+          )}
+          {reviewResult && (
+            <div className="window-card pd-result">
+              <div className="pd-result-header">
+                <h3>🤖 AI Code Review</h3>
+              </div>
+
+              <div className="ai-review-content">
+                <ReactMarkdown>{reviewResult}</ReactMarkdown>
+              </div>
+            </div>
+          )}
 
           {result && (
             <div className="window-card pd-result">

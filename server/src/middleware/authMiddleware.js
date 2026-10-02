@@ -21,8 +21,10 @@ const authMiddleware = (req, resp, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log(decoded);
     req.user = decoded;
+    console.log("User authenticated:", req.user);
     next();
   } catch (error) {
+    console.error("Authentication error:", error);
     resp
       .status(401)
       .json({ success: false, message: "Unauthorized User Please Login" });

@@ -3,7 +3,6 @@
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -17,6 +16,7 @@ enum Role {
   USER
   ADMIN
 }
+
 enum Difficulty {
   EASY
   MEDIUM
@@ -24,80 +24,90 @@ enum Difficulty {
 }
 
 model User {
-  id          Int          @id @default(autoincrement())
-  username    String
-  email       String       @unique
-  password    String
-  role        Role         @default(USER)
+  id       Int    @id @default(autoincrement())
+  username String
+  email    String @unique
+  password String
+  role     Role   @default(USER)
 
   submissions Submission[]
-  userCodes UserCode[]
+  userCodes   UserCode[]
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Problem {
-  id          Int          @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  title       String       @unique
-  slug        String       @unique
+  title String @unique
+  slug  String @unique
 
-  description String       @db.Text
+  description String @db.Text
 
-  input       String?      @db.Text
-  output      String?      @db.Text
+  input  String? @db.Text
+  output String? @db.Text
 
-  constraints String?      @db.Text
+  constraints String? @db.Text
 
-  difficulty  Difficulty
+  difficulty Difficulty
 
-  examples    Json?
+  examples Json?
 
-  testCases   TestCase[]
+  testCases TestCase[]
 
   submissions Submission[]
 
   userCodes UserCode[]
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model TestCase {
-  id          Int          @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  input       String       @db.Text
-  expected    String       @db.Text
+  input    String @db.Text
+  expected String @db.Text
 
-  isHidden    Boolean      @default(true)
+  isHidden Boolean @default(true)
 
-  problemId   Int
-  problem     Problem      @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  problemId Int
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime     @default(now())
+  createdAt DateTime @default(now())
 }
 
 model Submission {
-  id          Int          @id @default(autoincrement())
+  id       Int    @id @default(autoincrement())
+  code     String @db.Text
+  language String
+  status   String
+  runtime  Int?
+  memory   Int?
+  passed   Int?
+  total    Int?
 
-  code        String       @db.Text
-  language    String
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 
-  status      String
-  runtime     Int?
-  memory      Int?
-  passed      Int?
-  total       Int?
+  aiReview AIReview?
 
-  userId       Int
-  user         User        @relation(fields: [userId], references: [id])
+  problemId Int
+  problem   Problem @relation(fields: [problemId], references: [id])
 
-  problemId    Int
-  problem      Problem     @relation(fields: [problemId], references: [id])
-
-  createdAt    DateTime    @default(now())
+  createdAt DateTime @default(now())
 }
+
+model AIReview {
+  id           Int      @id @default(autoincrement())
+  submissionId Int      @unique
+  result       Json
+  createdAt    DateTime @default(now())
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+}
+
 model UserCode {
   id        Int      @id @default(autoincrement())
   userId    Int
@@ -106,7 +116,7 @@ model UserCode {
   code      String
   updatedAt DateTime @updatedAt
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@unique([userId, problemId, language])

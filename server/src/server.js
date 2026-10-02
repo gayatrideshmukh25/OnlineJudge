@@ -21,17 +21,25 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, res, next) => {
+  console.log(
+    `${req.method} ${req.protocol}://${req.get("host")}${req.originalUrl}`,
+  );
+  next();
+});
 // Routes
 app.use("/api/auth", require("./routes/authRouter"));
 app.use("/api/users", require("./routes/userRouter"));
 app.use("/api/problems", require("./routes/problemRouter"));
 app.use("/api/testcases", require("./routes/testCaseRouter"));
 app.use("/api/submissions", require("./routes/submissionRouter"));
+console.log("AI Router loaded routes");
+app.use("/api/ai", require("./routes/aiRouter"));
 app.use("/api/judge", require("./routes/judgeRouter"));
 app.use("/api/code", require("./routes/codeExecutionRouter"));
 app.use("/api/usercode", require("./routes/userCodeRouter"));
 app.use((req, res, next) => {
-  next();
+  console.log(`${req.method} ${req.url}`);
 });
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
