@@ -199,7 +199,7 @@ export default function ProblemDetails() {
       // STEP 3: Display result
       setResult(judgeResult.result ?? judgeResult);
 
-      setTestResults(judgeResult.testResults ?? []);
+      setTestResults(judgeResult.result?.testResults ?? []);
 
       setConsoleOutput(judgeResult.output || "Submission judged.");
 

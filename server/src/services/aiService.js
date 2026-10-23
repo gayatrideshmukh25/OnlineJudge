@@ -74,6 +74,5 @@ IMPORTANT RULES:
     model: "gemini-3.5-flash-lite",
     contents: prompt,
   });
-  console.log("AI response:", response.text);
   return response.text;
 };
