@@ -92,6 +92,7 @@ const submissionById = async (req, resp, next) => {
       include: {
         problem: true,
         user: true,
+        aiReview: true,
       },
     });
     if (!submission) {
@@ -100,6 +101,8 @@ const submissionById = async (req, resp, next) => {
         .json({ success: false, message: "Submission not found" });
       return;
     }
+    console.log(submission);
+
     resp.status(200).json({ success: true, submission });
   } catch (error) {
     next(error);

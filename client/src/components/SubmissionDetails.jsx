@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import {
   FiArrowLeft,
   FiCheckCircle,
@@ -148,18 +149,17 @@ export default function SubmissionDetails() {
               <code>{submission.code || "No code available."}</code>
             </pre>
           </section>
-
-          <section className="failed-tests-panel">
+          <br />
+          <section className="code-panel">
             <div className="code-panel-header">
-              <h2>Failed test cases</h2>
-              <span className="mono text-dim">
-                {submission.passed != null && submission.total != null
-                  ? `${submission.passed} / ${submission.total} passed`
-                  : "Result details"}
-              </span>
+              <h2>AI Review For Code</h2>
             </div>
+            <div className="ai-review-content">
+              <ReactMarkdown>{submission.aiReview.result}</ReactMarkdown>
+            </div>
+          </section>
 
-            {/* {failedTestCases.length ? (
+          {/* {failedTestCases.length ? (
               <div className="failed-tests-list">
                 {failedTestCases.map((testCase, index) => (
                   <article className="failed-test-case" key={index}>
@@ -188,7 +188,6 @@ export default function SubmissionDetails() {
                 Failed test case details are unavailable for this submission.
               </p>
             )} */}
-          </section>
         </main>
       </div>
     </div>

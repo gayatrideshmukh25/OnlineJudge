@@ -28,8 +28,14 @@ exports.getReview = async (req, resp, next) => {
       submission.language,
       submission.status,
     );
-
-    return resp.status(200).json({ result: response });
+    const savedReview = await prisma.aIReview.create({
+      data: {
+        submissionId: submission.id,
+        result: response,
+      },
+    });
+    console.log(savedReview.result);
+    return resp.status(200).json({ result: savedReview.result });
   } catch (err) {
     console.error("Error in getReview:", err);
     next(err);
