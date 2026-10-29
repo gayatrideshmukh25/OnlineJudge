@@ -12,3 +12,7 @@ temp/
 .agents/
 .claude/
 .windsurf/
+src/main.js
+src/test.js
+src/deleteData.js
+src/app.js

@@ -8,7 +8,7 @@ const app = express();
 // cors to allow requests from the frontend
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
   }),
 );
@@ -40,6 +40,7 @@ app.use("/api/code", require("./routes/codeExecutionRouter"));
 app.use("/api/usercode", require("./routes/userCodeRouter"));
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
+  next();
 });
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
