@@ -29,7 +29,7 @@ exports.loginUser = async (req, resp, next) => {
 
     resp.cookie("token", token, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "none",
       secure: process.env.NODE_ENV === "production",
     });
 
