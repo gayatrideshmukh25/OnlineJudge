@@ -29,7 +29,7 @@ app.use((req, res, next) => {
 });
 // Routes
 app.use("/api/auth", require("./routes/authRouter"));
-app.use("/api/users", require("./routes/userRouter"));
+app.use("/api/users", require("./routes/UserRouter"));
 app.use("/api/problems", require("./routes/problemRouter"));
 app.use("/api/testcases", require("./routes/testCaseRouter"));
 app.use("/api/submissions", require("./routes/submissionRouter"));
