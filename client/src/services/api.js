@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 // Single Axios instance used across the app.
 // withCredentials lets the browser send/receive the HTTP-only JWT cookie.
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
