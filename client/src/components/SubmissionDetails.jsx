@@ -19,6 +19,8 @@ export default function SubmissionDetails() {
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewResult, setReviewResult] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -60,7 +62,29 @@ export default function SubmissionDetails() {
       </div>
     );
   }
+  const handleGetAIReview = async () => {
+    try {
+      setReviewLoading(true);
 
+      const response = await aiService.getReview({
+        submissionId: id,
+      });
+
+      setAiReview(response?.result ?? null);
+
+      if (!response?.result) {
+        toast.error("Review was not returned. Please try again.");
+      } else {
+        toast.success("AI review generated successfully!");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to generate AI review.",
+      );
+    } finally {
+      setReviewLoading(false);
+    }
+  };
   const submissionId = submission.id ?? submission._id ?? id;
   const problem = submission.problem;
 
@@ -154,40 +178,25 @@ export default function SubmissionDetails() {
             <div className="code-panel-header">
               <h2>AI Review For Code</h2>
             </div>
+
             <div className="ai-review-content">
-              <ReactMarkdown>{submission.aiReview.result}</ReactMarkdown>
+              {aiReview ? (
+                <ReactMarkdown>{submission?.aiReview?.result}</ReactMarkdown>
+              ) : (
+                <div>
+                  <p>AI review is not available for this submission.</p>
+
+                  <button
+                    type="button"
+                    onClick={handleGetAIReview}
+                    disabled={reviewLoading}
+                  >
+                    {reviewLoading ? "Generating Review..." : "Get AI Review"}
+                  </button>
+                </div>
+              )}
             </div>
           </section>
-
-          {/* {failedTestCases.length ? (
-              <div className="failed-tests-list">
-                {failedTestCases.map((testCase, index) => (
-                  <article className="failed-test-case" key={index}>
-                    <h3>Test case {index + 1}</h3>
-                    <div className="test-case-values">
-                      <div>
-                        <span className="meta-label">Input</span>
-                        <pre>{testCase.input || "(empty)"}</pre>
-                      </div>
-                      <div>
-                        <span className="meta-label">Expected output</span>
-                        <pre>{testCase.expected || "(empty)"}</pre>
-                      </div>
-                      <div>
-                        <span className="meta-label">Your output</span>
-                        <pre>{testCase.actual || "(empty)"}</pre>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : testResults.length ? (
-              <p className="no-failed-tests">All test cases passed.</p>
-            ) : (
-              <p className="no-failed-tests">
-                Failed test case details are unavailable for this submission.
-              </p>
-            )} */}
         </main>
       </div>
     </div>

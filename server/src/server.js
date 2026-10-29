@@ -6,9 +6,13 @@ const cookieParser = require("cookie-parser");
 dotenv.config();
 const app = express();
 // cors to allow requests from the frontend
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://onlinejudge1-cl2u.onrender.com",
+];
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
