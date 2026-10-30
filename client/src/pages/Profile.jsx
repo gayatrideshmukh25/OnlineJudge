@@ -1,22 +1,22 @@
-import { useState } from 'react';
-import toast from 'react-hot-toast';
-import { FiUser, FiLock, FiTrash2 } from 'react-icons/fi';
-import useAuth from '../hooks/useAuth';
-import userService from '../services/userService';
-import Sidebar from '../components/Sidebar.jsx';
-import './Profile.css';
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { FiUser, FiLock, FiTrash2 } from "react-icons/fi";
+import useAuth from "../hooks/useAuth";
+import userService from "../services/userService";
+import Sidebar from "../components/Sidebar.jsx";
+import "./Profile.css";
 
 export default function Profile() {
   const { user, setUser, logout } = useAuth();
 
   const [profileForm, setProfileForm] = useState({
-    username: user?.username || '',
-    email: user?.email || '',
+    username: user?.username || "",
+    email: user?.email || "",
   });
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
@@ -27,9 +27,11 @@ export default function Profile() {
     try {
       const data = await userService.updateProfile(profileForm);
       setUser((u) => ({ ...u, ...(data.user ?? data) }));
-      toast.success('Profile updated');
+      toast.success("Profile updated");
     } catch (err) {
-      // handled globally
+      console.error("Change password error:", err.response?.data || err);
+
+      toast.error(err.response?.data?.message || "Failed to change password");
     } finally {
       setSavingProfile(false);
     }
@@ -38,26 +40,31 @@ export default function Profile() {
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error('New passwords do not match');
+      toast.error("New passwords do not match");
       return;
     }
     setSavingPassword(true);
     try {
       await userService.changePassword(passwordForm);
-      toast.success('Password changed successfully');
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      toast.success("Password changed successfully");
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     } catch (err) {
-      // handled globally
+      toast.error("cant change password");
     } finally {
       setSavingPassword(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('This will permanently delete your account. Continue?')) return;
+    if (!window.confirm("This will permanently delete your account. Continue?"))
+      return;
     try {
       await userService.deleteAccount();
-      toast.success('Account deleted');
+      toast.success("Account deleted");
       await logout();
     } catch (err) {
       // handled globally
@@ -76,14 +83,18 @@ export default function Profile() {
           </p>
 
           <div className="card profile-card">
-            <h3><FiUser /> Account Details</h3>
+            <h3>
+              <FiUser /> Account Details
+            </h3>
             <form onSubmit={handleProfileSubmit}>
               <div className="field">
                 <label>Username</label>
                 <input
                   className="input"
                   value={profileForm.username}
-                  onChange={(e) => setProfileForm((f) => ({ ...f, username: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileForm((f) => ({ ...f, username: e.target.value }))
+                  }
                 />
               </div>
               <div className="field">
@@ -92,17 +103,21 @@ export default function Profile() {
                   className="input"
                   type="email"
                   value={profileForm.email}
-                  onChange={(e) => setProfileForm((f) => ({ ...f, email: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileForm((f) => ({ ...f, email: e.target.value }))
+                  }
                 />
               </div>
               <button className="btn btn-primary" disabled={savingProfile}>
-                {savingProfile ? 'Saving…' : 'Save Changes'}
+                {savingProfile ? "Saving…" : "Save Changes"}
               </button>
             </form>
           </div>
 
           <div className="card profile-card">
-            <h3><FiLock /> Change Password</h3>
+            <h3>
+              <FiLock /> Change Password
+            </h3>
             <form onSubmit={handlePasswordSubmit}>
               <div className="field">
                 <label>Current Password</label>
@@ -111,7 +126,10 @@ export default function Profile() {
                   type="password"
                   value={passwordForm.currentPassword}
                   onChange={(e) =>
-                    setPasswordForm((f) => ({ ...f, currentPassword: e.target.value }))
+                    setPasswordForm((f) => ({
+                      ...f,
+                      currentPassword: e.target.value,
+                    }))
                   }
                 />
               </div>
@@ -121,7 +139,12 @@ export default function Profile() {
                   className="input"
                   type="password"
                   value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm((f) => ({ ...f, newPassword: e.target.value }))}
+                  onChange={(e) =>
+                    setPasswordForm((f) => ({
+                      ...f,
+                      newPassword: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div className="field">
@@ -131,19 +154,26 @@ export default function Profile() {
                   type="password"
                   value={passwordForm.confirmPassword}
                   onChange={(e) =>
-                    setPasswordForm((f) => ({ ...f, confirmPassword: e.target.value }))
+                    setPasswordForm((f) => ({
+                      ...f,
+                      confirmPassword: e.target.value,
+                    }))
                   }
                 />
               </div>
               <button className="btn btn-primary" disabled={savingPassword}>
-                {savingPassword ? 'Updating…' : 'Update Password'}
+                {savingPassword ? "Updating…" : "Update Password"}
               </button>
             </form>
           </div>
 
           <div className="card profile-card danger-zone">
-            <h3><FiTrash2 /> Danger Zone</h3>
-            <p className="text-dim">Deleting your account is permanent and cannot be undone.</p>
+            <h3>
+              <FiTrash2 /> Danger Zone
+            </h3>
+            <p className="text-dim">
+              Deleting your account is permanent and cannot be undone.
+            </p>
             <button className="btn btn-danger" onClick={handleDelete}>
               Delete Account
             </button>

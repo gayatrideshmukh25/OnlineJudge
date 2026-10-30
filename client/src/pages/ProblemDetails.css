@@ -119,8 +119,8 @@
   .pd-layout { grid-template-columns: 1fr; }
   .pd-statement { position: static; max-height: none; }
 }
-.ai-review-content {
-  font-size: 13px;
+/* .ai-review-content {
+  font-size: 15px;
   line-height: 1.5;
 }
 
@@ -135,4 +135,102 @@
 .ai-review-content p,
 .ai-review-content li {
   font-size: 13px;
+} */
+.ai-review-content {
+  padding: 22px 24px;
+  color: var(--text-primary, #e5e7eb);
+  font-size: 15px;
+  line-height: 1.75;
+  overflow-wrap: break-word;
+}
+
+/* Main headings */
+.ai-review-content h1,
+.ai-review-content h2 {
+  color: #f8fafc;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 24px 0 12px;
+  line-height: 1.4;
+}
+
+/* First heading should not have extra top spacing */
+.ai-review-content > h1:first-child,
+.ai-review-content > h2:first-child {
+  margin-top: 0;
+}
+
+/* Subheadings */
+.ai-review-content h3,
+.ai-review-content h4 {
+  color: #cbd5e1;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 18px 0 8px;
+}
+
+/* Paragraphs */
+.ai-review-content p {
+  margin: 8px 0 14px;
+  color: #cbd5e1;
+}
+
+/* Lists */
+.ai-review-content ul,
+.ai-review-content ol {
+  padding-left: 24px;
+  margin: 10px 0 18px;
+}
+
+.ai-review-content li {
+  padding-left: 5px;
+  margin-bottom: 7px;
+  color: #cbd5e1;
+}
+
+/* Bold text */
+.ai-review-content strong {
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+/* Inline code */
+.ai-review-content code {
+  background: rgba(148, 163, 184, 0.15);
+  color: #93c5fd;
+  padding: 3px 6px;
+  border-radius: 5px;
+  font-size: 13px;
+}
+
+/* Code blocks */
+.ai-review-content pre {
+  background: #0b1120;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 14px 0;
+}
+
+.ai-review-content pre code {
+  background: transparent;
+  padding: 0;
+  color: #cbd5e1;
+}
+
+/* Horizontal divider */
+.ai-review-content hr {
+  border: 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  margin: 22px 0;
+}
+
+/* Links */
+.ai-review-content a {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+.ai-review-content a:hover {
+  text-decoration: underline;
 }

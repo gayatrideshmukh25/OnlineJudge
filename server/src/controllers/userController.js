@@ -19,11 +19,11 @@ const getProfile = async (req, resp) => {
 };
 const updateProfile = async (req, resp) => {
   const { id } = req.user;
-  const { name, email } = req.body;
+  const { username, email } = req.body;
   try {
     const user = await prisma.user.update({
       where: { id: parseInt(id) },
-      data: { name, email },
+      data: { username, email },
     });
     resp
       .status(200)
@@ -35,7 +35,7 @@ const updateProfile = async (req, resp) => {
 };
 const changePassword = async (req, resp) => {
   const { id } = req.user;
-  const { oldPassword, newPassword } = req.body;
+  const { currentPassword, newPassword } = req.body;
   try {
     const user = await prisma.user.findUnique({
       where: { id: parseInt(id) },
@@ -44,7 +44,10 @@ const changePassword = async (req, resp) => {
       resp.status(404).json({ success: false, message: "User not found" });
       return;
     }
-    const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
     if (!isPasswordValid) {
       resp
         .status(400)

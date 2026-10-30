@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import useAuth from "../hooks/useAuth";
 import {
   FiArrowLeft,
   FiCheckCircle,
@@ -11,26 +12,52 @@ import {
 import Loading from "./Loading.jsx";
 import Sidebar from "./Sidebar.jsx";
 import submissionService from "../services/submissionService";
+import aiService from "../services/aiService";
 import { formatDate, statusBadgeClass } from "../utils/helpers";
 import "./SubmissionDetails.css";
+import toast from "react-hot-toast";
 
 export default function SubmissionDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const { isAuthenticated } = useAuth();
+
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewResult, setReviewResult] = useState(null);
+
+  const requireLogin = () => {
+    if (isAuthenticated) return true;
+
+    toast.error("Please log in to access AI review.");
+    navigate("/login", { state: { from: location } });
+    return false;
+  };
 
   useEffect(() => {
     let mounted = true;
 
     setLoading(true);
     setNotFound(false);
+    setSubmission(null);
+    setReviewResult(null);
+
     submissionService
       .getSubmissionById(id)
       .then((data) => {
-        if (mounted) setSubmission(data.submission ?? data);
+        if (!mounted) return;
+
+        const currentSubmission = data.submission ?? data;
+
+        setSubmission(currentSubmission);
+
+        // Load previously generated AI review, if available
+        setReviewResult(currentSubmission.aiReview?.result ?? null);
       })
       .catch(() => {
         if (mounted) {
@@ -47,7 +74,9 @@ export default function SubmissionDetails() {
     };
   }, [id]);
 
-  if (loading) return <Loading fullscreen label="Loading submission..." />;
+  if (loading) {
+    return <Loading fullscreen label="Loading submission..." />;
+  }
 
   if (notFound || !submission) {
     return (
@@ -55,6 +84,7 @@ export default function SubmissionDetails() {
         <div className="empty-state">
           <h3>Submission not found</h3>
           <p>It may have been removed or the link is incorrect.</p>
+
           <Link to="/submissions" className="btn btn-outline">
             <FiArrowLeft /> Back to submissions
           </Link>
@@ -62,31 +92,47 @@ export default function SubmissionDetails() {
       </div>
     );
   }
+
+  const submissionId = submission.id ?? submission._id ?? id;
+  const problem = submission.problem;
+
   const handleGetAIReview = async () => {
+    if (!requireLogin()) return;
+
+    if (!submissionId) {
+      toast.error("Submission ID is missing.");
+      return;
+    }
+
     try {
       setReviewLoading(true);
 
       const response = await aiService.getReview({
-        submissionId: id,
+        submissionId,
       });
 
-      setAiReview(response?.result ?? null);
+      const result = response?.result;
 
-      if (!response?.result) {
+      if (!result) {
         toast.error("Review was not returned. Please try again.");
-      } else {
-        toast.success("AI review generated successfully!");
+        return;
       }
-    } catch (error) {
+
+      setReviewResult(result);
+
+      toast.success("AI review generated successfully!");
+    } catch (err) {
+      console.error("AI Review Error:", err);
+
       toast.error(
-        error.response?.data?.message || "Failed to generate AI review.",
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to generate AI review.",
       );
     } finally {
       setReviewLoading(false);
     }
   };
-  const submissionId = submission.id ?? submission._id ?? id;
-  const problem = submission.problem;
 
   return (
     <div className="container page-enter submission-details-page">
@@ -103,7 +149,9 @@ export default function SubmissionDetails() {
               <p className="eyebrow mono" style={{ marginBottom: 3 }}>
                 SUBMISSION #{submissionId}
               </p>
+
               <br />
+
               {problem?.id && (
                 <Link
                   to={`/problems/${problem.id}`}
@@ -112,10 +160,12 @@ export default function SubmissionDetails() {
                   <h1>{problem?.title || "Submission details"}</h1>
                 </Link>
               )}
+
               <p className="text-dim">
                 Submitted {formatDate(submission.createdAt)}
               </p>
             </div>
+
             <span className={statusBadgeClass(submission.status)}>
               {submission.status || "Unknown"}
             </span>
@@ -129,6 +179,7 @@ export default function SubmissionDetails() {
                 <strong className="mono">{submission.language || "—"}</strong>
               </div>
             </div>
+
             <div className="submission-meta-item">
               <FiClock />
               <div>
@@ -140,6 +191,7 @@ export default function SubmissionDetails() {
                 </strong>
               </div>
             </div>
+
             <div className="submission-meta-item">
               <FiCpu />
               <div>
@@ -149,6 +201,7 @@ export default function SubmissionDetails() {
                 </strong>
               </div>
             </div>
+
             <div className="submission-meta-item">
               <FiCheckCircle />
               <div>
@@ -169,25 +222,31 @@ export default function SubmissionDetails() {
                 {submission.language || "code"}
               </span>
             </div>
+
             <pre className="submission-code">
               <code>{submission.code || "No code available."}</code>
             </pre>
           </section>
+
           <br />
+
           <section className="code-panel">
             <div className="code-panel-header">
               <h2>AI Review For Code</h2>
             </div>
 
             <div className="ai-review-content">
-              {aiReview ? (
-                <ReactMarkdown>{submission?.aiReview?.result}</ReactMarkdown>
+              {reviewResult ? (
+                <ReactMarkdown>{reviewResult}</ReactMarkdown>
               ) : (
                 <div>
                   <p>AI review is not available for this submission.</p>
 
+                  <br />
+
                   <button
                     type="button"
+                    className="btn btn-primary"
                     onClick={handleGetAIReview}
                     disabled={reviewLoading}
                   >
