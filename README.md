@@ -230,7 +230,3 @@ The Docker execution service is maintained separately and requires an accessible
 
 
 
-
----
-
-⭐ If you find this project interesting, consider giving it a star!
